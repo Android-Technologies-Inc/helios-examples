@@ -1,0 +1,294 @@
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+import MintNFT from '../components/MintNFT';
+import Head from 'next/head';
+import styles from '../styles/Home.module.css';
+import { useState, useEffect } from "react";
+import WalletInfo from '../components/WalletInfo';
+import { Assets, Address, ByteArrayData, Cip30Wallet, ConstrData, hexToBytes, NetworkParams, Program, Value, TxOutput, Tx, WalletHelper } from "@hyperionbt/helios";
+var Home = function () {
+    var optimize = false;
+    var networkParamsUrl = "https://d1t0d7c2nekuk0.cloudfront.net/preprod.json";
+    var _a = useState(undefined), walletAPI = _a[0], setWalletAPI = _a[1];
+    var _b = useState({ txId: '' }), tx = _b[0], setTx = _b[1];
+    var _c = useState({ balance: '' }), walletInfo = _c[0], setWalletInfo = _c[1];
+    var _d = useState(false), walletIsEnabled = _d[0], setWalletIsEnabled = _d[1];
+    var _e = useState(undefined), whichWalletSelected = _e[0], setWhichWalletSelected = _e[1];
+    useEffect(function () {
+        var checkWallet = function () { return __awaiter(void 0, void 0, void 0, function () {
+            var _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _a = setWalletIsEnabled;
+                        return [4 /*yield*/, checkIfWalletFound()];
+                    case 1:
+                        _a.apply(void 0, [_b.sent()]);
+                        return [2 /*return*/];
+                }
+            });
+        }); };
+        checkWallet();
+    }, [whichWalletSelected]);
+    useEffect(function () {
+        var enableSelectedWallet = function () { return __awaiter(void 0, void 0, void 0, function () {
+            var api;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!walletIsEnabled) return [3 /*break*/, 2];
+                        return [4 /*yield*/, enableWallet()];
+                    case 1:
+                        api = _a.sent();
+                        setWalletAPI(api);
+                        _a.label = 2;
+                    case 2: return [2 /*return*/];
+                }
+            });
+        }); };
+        enableSelectedWallet();
+    }, [walletIsEnabled]);
+    useEffect(function () {
+        var updateWalletInfo = function () { return __awaiter(void 0, void 0, void 0, function () {
+            var _balance;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!walletIsEnabled) return [3 /*break*/, 2];
+                        return [4 /*yield*/, getBalance()];
+                    case 1:
+                        _balance = _a.sent();
+                        setWalletInfo(__assign(__assign({}, walletInfo), { balance: _balance }));
+                        _a.label = 2;
+                    case 2: return [2 /*return*/];
+                }
+            });
+        }); };
+        updateWalletInfo();
+    }, [walletAPI]);
+    // user selects what wallet to connect to
+    var handleWalletSelect = function (obj) {
+        var whichWalletSelected = obj.target.value;
+        setWhichWalletSelected(whichWalletSelected);
+    };
+    var checkIfWalletFound = function () { return __awaiter(void 0, void 0, void 0, function () {
+        var walletFound, walletChoice;
+        var _a, _b;
+        return __generator(this, function (_c) {
+            walletFound = false;
+            walletChoice = whichWalletSelected;
+            if (walletChoice === "nami") {
+                walletFound = !!((_a = window === null || window === void 0 ? void 0 : window.cardano) === null || _a === void 0 ? void 0 : _a.nami);
+            }
+            else if (walletChoice === "eternl") {
+                walletFound = !!((_b = window === null || window === void 0 ? void 0 : window.cardano) === null || _b === void 0 ? void 0 : _b.eternl);
+            }
+            return [2 /*return*/, walletFound];
+        });
+    }); };
+    var enableWallet = function () { return __awaiter(void 0, void 0, void 0, function () {
+        var walletChoice, handle, walletAPI_1, handle, walletAPI_2, err_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 5, , 6]);
+                    walletChoice = whichWalletSelected;
+                    if (!(walletChoice === "nami")) return [3 /*break*/, 2];
+                    return [4 /*yield*/, window.cardano.nami.enable()];
+                case 1:
+                    handle = _a.sent();
+                    walletAPI_1 = new Cip30Wallet(handle);
+                    return [2 /*return*/, walletAPI_1];
+                case 2:
+                    if (!(walletChoice === "eternl")) return [3 /*break*/, 4];
+                    return [4 /*yield*/, window.cardano.eternl.enable()];
+                case 3:
+                    handle = _a.sent();
+                    walletAPI_2 = new Cip30Wallet(handle);
+                    return [2 /*return*/, walletAPI_2];
+                case 4: return [3 /*break*/, 6];
+                case 5:
+                    err_1 = _a.sent();
+                    console.log('enableWallet error', err_1);
+                    return [3 /*break*/, 6];
+                case 6: return [2 /*return*/];
+            }
+        });
+    }); };
+    var getBalance = function () { return __awaiter(void 0, void 0, void 0, function () {
+        var walletHelper, balanceAmountValue, balanceAmount, walletBalance, err_2;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    walletHelper = new WalletHelper(walletAPI);
+                    return [4 /*yield*/, walletHelper.calcBalance()];
+                case 1:
+                    balanceAmountValue = _a.sent();
+                    balanceAmount = balanceAmountValue.lovelace;
+                    walletBalance = BigInt(balanceAmount);
+                    return [2 /*return*/, walletBalance.toLocaleString()];
+                case 2:
+                    err_2 = _a.sent();
+                    console.log('getBalance error: ', err_2);
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
+            }
+        });
+    }); };
+    var mintNFT = function (params) { return __awaiter(void 0, void 0, void 0, function () {
+        var address, name, description, img, minAdaVal, walletHelper, utxos, changeAddr, colatUtxo, tx, mintScript, mintProgram, nftTokenName, tokens, mintRedeemer, networkParams, _a, signatures, txHash;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    address = params[0];
+                    name = params[1];
+                    description = params[2];
+                    img = params[3];
+                    minAdaVal = new Value(BigInt(2000000));
+                    walletHelper = new WalletHelper(walletAPI);
+                    return [4 /*yield*/, walletHelper.pickUtxos(minAdaVal)];
+                case 1:
+                    utxos = _b.sent();
+                    return [4 /*yield*/, walletHelper.changeAddress];
+                case 2:
+                    changeAddr = _b.sent();
+                    return [4 /*yield*/, walletHelper.pickCollateral()];
+                case 3:
+                    colatUtxo = _b.sent();
+                    tx = new Tx();
+                    // Add the UTXO as inputs
+                    tx.addInputs(utxos[0]);
+                    mintScript = "minting nft\n\n    const TX_ID: ByteArray = #" + utxos[0][0].txId.hex + "\n    const txId: TxId = TxId::new(TX_ID)\n    const outputId: TxOutputId = TxOutputId::new(txId, " + utxos[0][0].utxoIdx + ")\n    \n    func main(ctx: ScriptContext) -> Bool {\n        tx: Tx = ctx.tx;\n        mph: MintingPolicyHash = ctx.get_current_minting_policy_hash();\n    \n        assetclass: AssetClass = AssetClass::new(\n            mph, \n            \"" + name + "\".encode_utf8()\n        );\n        value_minted: Value = tx.minted;\n    \n        // Validator logic starts\n        (value_minted == Value::new(assetclass, 1)).trace(\"NFT:1 \") &&\n        tx.inputs.any((input: TxInput) -> Bool {\n                                        (input.output_id == outputId).trace(\"NFT2: \")\n                                        }\n        )\n    }";
+                    mintProgram = Program.new(mintScript).compile(optimize);
+                    // Add the script as a witness to the transaction
+                    tx.attachScript(mintProgram);
+                    nftTokenName = ByteArrayData.fromString(name).toHex();
+                    tokens = [[hexToBytes(nftTokenName), BigInt(1)]];
+                    mintRedeemer = new ConstrData(0, []);
+                    // Indicate the minting we want to include as part of this transaction
+                    tx.mintTokens(mintProgram.mintingPolicyHash, tokens, mintRedeemer);
+                    // Construct the output and include both the minimum Ada as well as the minted NFT
+                    tx.addOutput(new TxOutput(Address.fromBech32(address), new Value(minAdaVal.lovelace, new Assets([[mintProgram.mintingPolicyHash, tokens]]))));
+                    // Add the collateral utxo
+                    tx.addCollateral(colatUtxo);
+                    _a = NetworkParams.bind;
+                    return [4 /*yield*/, fetch(networkParamsUrl)
+                            .then(function (response) { return response.json(); })];
+                case 4:
+                    networkParams = new (_a.apply(NetworkParams, [void 0, _b.sent()]))();
+                    // Attached the metadata for the minting transaction
+                    tx.addMetadata(721, { "map": [[mintProgram.mintingPolicyHash.hex, { "map": [[name,
+                                            {
+                                                "map": [["name", name],
+                                                    ["description", description],
+                                                    ["image", img]
+                                                ]
+                                            }
+                                        ]] }
+                            ]]
+                    });
+                    console.log("tx before final", tx.dump());
+                    // Send any change back to the buyer
+                    return [4 /*yield*/, tx.finalize(networkParams, changeAddr)];
+                case 5:
+                    // Send any change back to the buyer
+                    _b.sent();
+                    console.log("tx after final", tx.dump());
+                    console.log("Verifying signature...");
+                    return [4 /*yield*/, walletAPI.signTx(tx)];
+                case 6:
+                    signatures = _b.sent();
+                    tx.addSignatures(signatures);
+                    console.log("Submitting transaction...");
+                    return [4 /*yield*/, walletAPI.submitTx(tx)];
+                case 7:
+                    txHash = _b.sent();
+                    console.log("txHash", txHash);
+                    setTx({ txId: txHash.hex });
+                    return [2 /*return*/];
+            }
+        });
+    }); };
+    return (<div className={styles.container}>
+      <Head>
+        <title>Helios Tx Builder</title>
+        <meta name="description" content="Littercoin web tools page"/>
+        <link rel="icon" href="/favicon.ico"/>
+      </Head>
+
+      <main className={styles.main}>
+        <h3 className={styles.title}>
+          Helios Tx Builder
+        </h3>
+   
+        <div className={styles.borderwallet}>
+            <p>
+              Connect to your wallet 
+            </p>
+            <p className={styles.borderwallet}>
+              <input type="radio" id="nami" name="wallet" value="nami" onChange={handleWalletSelect}/>
+                <label>Nami</label>
+            </p>
+          </div>
+            {!tx.txId && walletIsEnabled && <div className={styles.border}><WalletInfo walletInfo={walletInfo}/></div>}
+            {tx.txId && <div className={styles.border}><b>Transaction Success!!!</b>
+            <p>TxId &nbsp;&nbsp;<a href={"https://preprod.cexplorer.io/tx/" + tx.txId} target="_blank" rel="noopener noreferrer">{tx.txId}</a></p>
+            <p>Please wait until the transaction is confirmed on the blockchain and reload this page before doing another transaction</p>
+          </div>}
+          {walletIsEnabled && !tx.txId && <div className={styles.border}><MintNFT onMintNFT={mintNFT}/></div>}
+
+      </main>
+
+      <footer className={styles.footer}>
+
+      </footer>
+    </div>);
+};
+export default Home;
+//# sourceMappingURL=index.jsx.map
