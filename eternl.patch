@@ -1,0 +1,16 @@
+diff --git a/nft/pages/index.tsx b/nft/pages/index.tsx
+index 1b2b156..4dfc831 100644
+--- a/nft/pages/index.tsx
++++ b/nft/pages/index.tsx
+@@ -255,6 +255,10 @@ const Home: NextPage = () => {
+               <input type="radio" id="nami" name="wallet" value="nami" onChange={handleWalletSelect}/>
+                 <label>Nami</label>
+             </p>
++            <p className={styles.borderwallet}>
++              <input type="radio" id="nami" name="wallet" value="eternl" onChange={handleWalletSelect}/>
++                <label>Etrnl</label>
++            </p>
+           </div>
+             {!tx.txId && walletIsEnabled && <div className={styles.border}><WalletInfo walletInfo={walletInfo}/></div>}
+             {tx.txId && <div className={styles.border}><b>Transaction Success!!!</b>
+

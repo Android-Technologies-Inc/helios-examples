@@ -51,14 +51,100 @@ import styles from '../styles/Home.module.css';
 import { useState, useEffect } from "react";
 import WalletInfo from '../components/WalletInfo';
 import { Assets, Address, ByteArrayData, Cip30Wallet, ConstrData, hexToBytes, NetworkParams, Program, Value, TxOutput, Tx, WalletHelper } from "@hyperionbt/helios";
+/**
+ * Check if a string is empty or whitespace
+ *
+ * @param {string} str - The string to check
+ *
+ * @returns {boolean} - Returns TRUE if the string is "null", all
+ *  whitespace, or of length zero, FALSE otherwise
+ */
+function isStringEmptyOrWhitespace(str) {
+    // validate the input parameter
+    if (typeof str !== 'string') {
+        throw new Error('Input must be of type string');
+    }
+    // return true if the string is "null" or of length zero after trimming
+    return str === null || (str.trim().length);
+}
+/**
+ * Set the text that will be shown next to the animation spinner.
+ *
+ * @param {string} newText - The string to check
+ *
+ */
+function setSpinnerAnimationText(newText) {
+    if (isStringEmptyOrWhitespace(newText))
+        throw new Error('The animation spinner text is empty or invalid');
+    // update the text that will be shwon in the spinner animation
+    document.querySelector(".spinner-text").textContent = newText;
+}
+/**
+ * Show the animation spinner
+ *
+ * @param {string} newText - The string to check
+ */
+function showAnimationSpinner(newText) {
+    if (!isStringEmptyOrWhitespace(newText))
+        setSpinnerAnimationText(newText);
+    document.querySelector(".spinner-container").style.display = "flex";
+}
+/**
+ * Hide the animation spinner
+ */
+function hideAnimationSpinner() {
+    document.querySelector(".spinner-container").style.display = "none";
+}
+/**
+ * This funtion wraps an async call (promise) so that the busy
+ *  animation is shown before the call is made, and hidden
+ *  when the call is done (or errors our).
+ *
+ * @param {Promise} funcAsync - The async function to call.
+ * @param {string} spinnerText - The busy animaton message
+ *  that will be displayed next to the spinner animation.
+ *
+ * @returns {Promise<*>}
+ */
+function doAsyncWithBusyAnimation(funcAsync, spinnerText) {
+    if (spinnerText === void 0) { spinnerText = 'Querying...'; }
+    return __awaiter(this, void 0, void 0, function () {
+        var retVal, err_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    if (!(funcAsync instanceof Promise))
+                        throw new Error('The value in the funcAsync parameter is not a promise.');
+                    if (isStringEmptyOrWhitespace(spinnerText))
+                        throw new Error('The spinner text is empty or invalid.');
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 3, , 4]);
+                    // Show the animation spinner with the desired busy message.
+                    showAnimationSpinner(spinnerText);
+                    return [4 /*yield*/, funcAsync];
+                case 2:
+                    retVal = _a.sent();
+                    return [2 /*return*/, retval];
+                case 3:
+                    err_1 = _a.sent();
+                    // Make sure the spinner animation is hidden.
+                    hideAnimationSpinner();
+                    // Let the caller deal with the error.
+                    throw err_1;
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+}
 var Home = function () {
     var optimize = false;
-    var networkParamsUrl = "https://d1t0d7c2nekuk0.cloudfront.net/preprod.json";
+    var networkParamsUrl = "https://d1t0d7c2nekuk0.cloudfront.net/".concat(selectedNetwork, ".json");
     var _a = useState(undefined), walletAPI = _a[0], setWalletAPI = _a[1];
-    var _b = useState({ txId: '' }), tx = _b[0], setTx = _b[1];
-    var _c = useState({ balance: '' }), walletInfo = _c[0], setWalletInfo = _c[1];
+    var _b = useState({ txId: "" }), tx = _b[0], setTx = _b[1];
+    var _c = useState({ balance: "" }), walletInfo = _c[0], setWalletInfo = _c[1];
     var _d = useState(false), walletIsEnabled = _d[0], setWalletIsEnabled = _d[1];
-    var _e = useState(undefined), whichWalletSelected = _e[0], setWhichWalletSelected = _e[1];
+    var _e = useState(), whichWalletSelected = _e[0], setWhichWalletSelected = _e[1];
     useEffect(function () {
         var checkWallet = function () { return __awaiter(void 0, void 0, void 0, function () {
             var _a;
@@ -92,7 +178,7 @@ var Home = function () {
             });
         }); };
         enableSelectedWallet();
-    }, [walletIsEnabled]);
+    }, [walletIsEnabled, whichWalletSelected]);
     useEffect(function () {
         var updateWalletInfo = function () { return __awaiter(void 0, void 0, void 0, function () {
             var _balance;
@@ -102,7 +188,7 @@ var Home = function () {
                         if (!walletIsEnabled) return [3 /*break*/, 2];
                         return [4 /*yield*/, getBalance()];
                     case 1:
-                        _balance = _a.sent();
+                        _balance = (_a.sent());
                         setWalletInfo(__assign(__assign({}, walletInfo), { balance: _balance }));
                         _a.label = 2;
                     case 2: return [2 /*return*/];
@@ -117,51 +203,39 @@ var Home = function () {
         setWhichWalletSelected(whichWalletSelected);
     };
     var checkIfWalletFound = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var walletFound, walletChoice;
-        var _a, _b;
-        return __generator(this, function (_c) {
-            walletFound = false;
-            walletChoice = whichWalletSelected;
-            if (walletChoice === "nami") {
-                walletFound = !!((_a = window === null || window === void 0 ? void 0 : window.cardano) === null || _a === void 0 ? void 0 : _a.nami);
-            }
-            else if (walletChoice === "eternl") {
-                walletFound = !!((_b = window === null || window === void 0 ? void 0 : window.cardano) === null || _b === void 0 ? void 0 : _b.eternl);
-            }
-            return [2 /*return*/, walletFound];
+        return __generator(this, function (_a) {
+            if (!whichWalletSelected)
+                return [2 /*return*/, false];
+            if (!window.cardano)
+                return [2 /*return*/, false];
+            return [2 /*return*/, !!window.cardano[whichWalletSelected]];
         });
     }); };
     var enableWallet = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var walletChoice, handle, walletAPI_1, handle, walletAPI_2, err_1;
+        var walletChoice, handle, walletAPI_1, err_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 5, , 6]);
+                    _a.trys.push([0, 2, , 3]);
                     walletChoice = whichWalletSelected;
-                    if (!(walletChoice === "nami")) return [3 /*break*/, 2];
-                    return [4 /*yield*/, window.cardano.nami.enable()];
+                    if (!walletChoice)
+                        return [2 /*return*/];
+                    return [4 /*yield*/, window.cardano[walletChoice].enable()];
                 case 1:
                     handle = _a.sent();
                     walletAPI_1 = new Cip30Wallet(handle);
                     return [2 /*return*/, walletAPI_1];
                 case 2:
-                    if (!(walletChoice === "eternl")) return [3 /*break*/, 4];
-                    return [4 /*yield*/, window.cardano.eternl.enable()];
-                case 3:
-                    handle = _a.sent();
-                    walletAPI_2 = new Cip30Wallet(handle);
-                    return [2 /*return*/, walletAPI_2];
-                case 4: return [3 /*break*/, 6];
-                case 5:
-                    err_1 = _a.sent();
-                    console.log('enableWallet error', err_1);
-                    return [3 /*break*/, 6];
-                case 6: return [2 /*return*/];
+                    err_2 = _a.sent();
+                    console.log("enableWallet error", err_2);
+                    setWhichWalletSelected(undefined);
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
             }
         });
     }); };
     var getBalance = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var walletHelper, balanceAmountValue, balanceAmount, walletBalance, err_2;
+        var walletHelper, balanceAmountValue, balanceAmount, walletBalance, err_3;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -174,8 +248,8 @@ var Home = function () {
                     walletBalance = BigInt(balanceAmount);
                     return [2 /*return*/, walletBalance.toLocaleString()];
                 case 2:
-                    err_2 = _a.sent();
-                    console.log('getBalance error: ', err_2);
+                    err_3 = _a.sent();
+                    console.log("getBalance error: ", err_3);
                     return [3 /*break*/, 3];
                 case 3: return [2 /*return*/];
             }
@@ -204,12 +278,20 @@ var Home = function () {
                     tx = new Tx();
                     // Add the UTXO as inputs
                     tx.addInputs(utxos[0]);
-                    mintScript = "minting nft\n\n    const TX_ID: ByteArray = #" + utxos[0][0].txId.hex + "\n    const txId: TxId = TxId::new(TX_ID)\n    const outputId: TxOutputId = TxOutputId::new(txId, " + utxos[0][0].utxoIdx + ")\n    \n    func main(ctx: ScriptContext) -> Bool {\n        tx: Tx = ctx.tx;\n        mph: MintingPolicyHash = ctx.get_current_minting_policy_hash();\n    \n        assetclass: AssetClass = AssetClass::new(\n            mph, \n            \"" + name + "\".encode_utf8()\n        );\n        value_minted: Value = tx.minted;\n    \n        // Validator logic starts\n        (value_minted == Value::new(assetclass, 1)).trace(\"NFT:1 \") &&\n        tx.inputs.any((input: TxInput) -> Bool {\n                                        (input.output_id == outputId).trace(\"NFT2: \")\n                                        }\n        )\n    }";
+                    mintScript = "minting nft\n\n    const TX_ID: ByteArray = #" +
+                        utxos[0][0].txId.hex +
+                        "\n    const txId: TxId = TxId::new(TX_ID)\n    const outputId: TxOutputId = TxOutputId::new(txId, " +
+                        utxos[0][0].utxoIdx +
+                        ")\n    \n    func main(ctx: ScriptContext) -> Bool {\n        tx: Tx = ctx.tx;\n        mph: MintingPolicyHash = ctx.get_current_minting_policy_hash();\n    \n        assetclass: AssetClass = AssetClass::new(\n            mph, \n            \"" +
+                        name +
+                        "\".encode_utf8()\n        );\n        value_minted: Value = tx.minted;\n    \n        // Validator logic starts\n        (value_minted == Value::new(assetclass, 1)).trace(\"NFT:1 \") &&\n        tx.inputs.any((input: TxInput) -> Bool {\n                                        (input.output_id == outputId).trace(\"NFT2: \")\n                                        }\n        )\n    }";
                     mintProgram = Program.new(mintScript).compile(optimize);
                     // Add the script as a witness to the transaction
                     tx.attachScript(mintProgram);
                     nftTokenName = ByteArrayData.fromString(name).toHex();
-                    tokens = [[hexToBytes(nftTokenName), BigInt(1)]];
+                    tokens = [
+                        [hexToBytes(nftTokenName), BigInt(1)],
+                    ];
                     mintRedeemer = new ConstrData(0, []);
                     // Indicate the minting we want to include as part of this transaction
                     tx.mintTokens(mintProgram.mintingPolicyHash, tokens, mintRedeemer);
@@ -218,20 +300,30 @@ var Home = function () {
                     // Add the collateral utxo
                     tx.addCollateral(colatUtxo);
                     _a = NetworkParams.bind;
-                    return [4 /*yield*/, fetch(networkParamsUrl)
-                            .then(function (response) { return response.json(); })];
+                    return [4 /*yield*/, fetch(networkParamsUrl).then(function (response) { return response.json(); })];
                 case 4:
                     networkParams = new (_a.apply(NetworkParams, [void 0, _b.sent()]))();
                     // Attached the metadata for the minting transaction
-                    tx.addMetadata(721, { "map": [[mintProgram.mintingPolicyHash.hex, { "map": [[name,
+                    tx.addMetadata(721, {
+                        map: [
+                            [
+                                mintProgram.mintingPolicyHash.hex,
+                                {
+                                    map: [
+                                        [
+                                            name,
                                             {
-                                                "map": [["name", name],
+                                                map: [
+                                                    ["name", name],
                                                     ["description", description],
-                                                    ["image", img]
-                                                ]
-                                            }
-                                        ]] }
-                            ]]
+                                                    ["image", img],
+                                                ],
+                                            },
+                                        ],
+                                    ],
+                                },
+                            ],
+                        ],
                     });
                     console.log("tx before final", tx.dump());
                     // Send any change back to the buyer
@@ -258,36 +350,50 @@ var Home = function () {
     return (<div className={styles.container}>
       <Head>
         <title>Helios Tx Builder</title>
-        <meta name="description" content="Littercoin web tools page"/>
-        <link rel="icon" href="/favicon.ico"/>
+        <meta name='description' content='Littercoin web tools page'/>
+        <link rel='icon' href='/favicon.ico'/>
       </Head>
 
+      < />!-- container for the spinner animation -->
+      <div className="spinner-container">
+        < />!-- the spinner itself -->
+        <div className="spinner"></div>
+        < />!-- the text next to the spinner -->
+        <div className="spinner-text"></div>
+      </div>
+
       <main className={styles.main}>
-        <h3 className={styles.title}>
-          Helios Tx Builder
-        </h3>
+        <h3 className={styles.title}>Helios Tx Builder</h3>
    
         <div className={styles.borderwallet}>
+          <p>Connect to your wallet</p>
+          {SUPPORTED_WALLETS.map(function (wallet) { return (<p key={wallet} className={styles.borderwallet}>
+              <input type='radio' id={wallet} name='wallet' value={wallet} onChange={handleWalletSelect}/>
+              <label>{wallet}</label>
+            </p>); })}
+        </div>
+        {!tx.txId && walletIsEnabled && (<div className={styles.border}>
+            <WalletInfo walletInfo={walletInfo}/>
+          </div>)}
+        {tx.txId && (<div className={styles.border}>
+            <b>Transaction Success!!!</b>
             <p>
-              Connect to your wallet 
+              TxId &nbsp;&nbsp;
+              <a href={"https://".concat(selectedNetwork, ".cexplorer.io/tx/") + tx.txId} target='_blank' rel='noopener noreferrer'>
+                {tx.txId}
+              </a>
             </p>
-            <p className={styles.borderwallet}>
-              <input type="radio" id="nami" name="wallet" value="nami" onChange={handleWalletSelect}/>
-                <label>Nami</label>
+            <p>
+              Please wait until the transaction is confirmed on the blockchain
+              and reload this page before doing another transaction
             </p>
-          </div>
-            {!tx.txId && walletIsEnabled && <div className={styles.border}><WalletInfo walletInfo={walletInfo}/></div>}
-            {tx.txId && <div className={styles.border}><b>Transaction Success!!!</b>
-            <p>TxId &nbsp;&nbsp;<a href={"https://preprod.cexplorer.io/tx/" + tx.txId} target="_blank" rel="noopener noreferrer">{tx.txId}</a></p>
-            <p>Please wait until the transaction is confirmed on the blockchain and reload this page before doing another transaction</p>
-          </div>}
-          {walletIsEnabled && !tx.txId && <div className={styles.border}><MintNFT onMintNFT={mintNFT}/></div>}
-
+          </div>)}
+        {walletIsEnabled && !tx.txId && (<div className={styles.border}>
+            <MintNFT onMintNFT={mintNFT}/>
+          </div>)}
       </main>
 
-      <footer className={styles.footer}>
-
-      </footer>
+      <footer className={styles.footer}></footer>
     </div>);
 };
 export default Home;
