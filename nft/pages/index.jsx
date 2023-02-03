@@ -65,7 +65,20 @@ function isStringEmptyOrWhitespace(str) {
         throw new Error('Input must be of type string');
     }
     // return true if the string is "null" or of length zero after trimming
-    return str === null || (str.trim().length);
+    return str === null || str.trim().length < 1;
+}
+/**
+ * Positions the target DOM element directly over the source DOM element.
+ *
+ * @param {HTMLElement} srcElement - The source DOM element.
+ * @param {HTMLElement} trgElement - The target DOM element.
+ */
+function positionOverElement(srcElement, trgElement) {
+    if (!srcElement || !trgElement)
+        throw new Error("Both source and target elements are required");
+    trgElement.style.position = "absolute";
+    trgElement.style.left = srcElement.offsetLeft + "px";
+    trgElement.style.top = srcElement.offsetTop + "px";
 }
 /**
  * Set the text that will be shown next to the animation spinner.
@@ -76,7 +89,7 @@ function isStringEmptyOrWhitespace(str) {
 function setSpinnerAnimationText(newText) {
     if (isStringEmptyOrWhitespace(newText))
         throw new Error('The animation spinner text is empty or invalid');
-    // update the text that will be shwon in the spinner animation
+    // update the text that will be shown in the spinner animation
     document.querySelector(".spinner-text").textContent = newText;
 }
 /**
@@ -88,6 +101,15 @@ function showAnimationSpinner(newText) {
     if (!isStringEmptyOrWhitespace(newText))
         setSpinnerAnimationText(newText);
     document.querySelector(".spinner-container").style.display = "flex";
+    // TODO: Remove this code and put it in the main CSS file once we figure
+    //  out why our style modifications in the fil are not showing up
+    //  during run-time.
+    document.querySelector(".spinner-container").style.position = "absolute";
+    document.querySelector(".spinner-container").style.left = "50%";
+    document.querySelector(".spinner-container").style.top = "50%";
+    document.querySelector(".spinner-container").style.transform = "translate(-50%, -50%)";
+    document.querySelector(".spinner-container").style.color = "white";
+    document.querySelector(".spinner-container").style.background = "blue";
 }
 /**
  * Hide the animation spinner
@@ -125,7 +147,8 @@ function doAsyncWithBusyAnimation(funcAsync, spinnerText) {
                     return [4 /*yield*/, funcAsync];
                 case 2:
                     retVal = _a.sent();
-                    return [2 /*return*/, retval];
+                    hideAnimationSpinner();
+                    return [2 /*return*/, retVal];
                 case 3:
                     err_1 = _a.sent();
                     // Make sure the spinner animation is hidden.
@@ -137,6 +160,24 @@ function doAsyncWithBusyAnimation(funcAsync, spinnerText) {
         });
     });
 }
+/*
+ This sets the selected Cardano network.  Valid values are:
+
+  preprod    - The preview production network
+  preview    - The preview test network
+  mainnet    - The main network
+
+  WARNING: If this value doesn't match what network the user currently
+    has selected in their wallet, you end up with a contextually corrupt
+    processing environment.
+ */
+export var selectedNetwork = 'preview';
+export var SUPPORTED_WALLETS = [
+    "nami",
+    "flint",
+    "eternl",
+    "Fake - Does not exist",
+];
 var Home = function () {
     var optimize = false;
     var networkParamsUrl = "https://d1t0d7c2nekuk0.cloudfront.net/".concat(selectedNetwork, ".json");
@@ -186,7 +227,7 @@ var Home = function () {
                 switch (_a.label) {
                     case 0:
                         if (!walletIsEnabled) return [3 /*break*/, 2];
-                        return [4 /*yield*/, getBalance()];
+                        return [4 /*yield*/, doAsyncWithBusyAnimation(getBalance())];
                     case 1:
                         _balance = (_a.sent());
                         setWalletInfo(__assign(__assign({}, walletInfo), { balance: _balance }));
@@ -354,11 +395,11 @@ var Home = function () {
         <link rel='icon' href='/favicon.ico'/>
       </Head>
 
-      < />!-- container for the spinner animation -->
+      {/* container for the spinner animation */}
       <div className="spinner-container">
-        < />!-- the spinner itself -->
+        {/* the spinner itself */}
         <div className="spinner"></div>
-        < />!-- the text next to the spinner -->
+        {/* the text next to the spinner */}
         <div className="spinner-text"></div>
       </div>
 

@@ -33,14 +33,29 @@ declare global {
  * @returns {boolean} - Returns TRUE if the string is "null", all
  *  whitespace, or of length zero, FALSE otherwise
  */
-function isStringEmptyOrWhitespace(str) {
+function isStringEmptyOrWhitespace(str: string) {
   // validate the input parameter
   if (typeof str !== 'string') {
     throw new Error('Input must be of type string');
   }
 
   // return true if the string is "null" or of length zero after trimming
-  return str === null || str.trim().length < 1>;
+  return str === null || str.trim().length < 1;
+}
+
+/**
+ * Positions the target DOM element directly over the source DOM element.
+ *
+ * @param {HTMLElement} srcElement - The source DOM element.
+ * @param {HTMLElement} trgElement - The target DOM element.
+ */
+function positionOverElement(srcElement: object, trgElement: object) {
+  if (!srcElement || !trgElement)
+    throw new Error("Both source and target elements are required");
+
+  trgElement.style.position = "absolute";
+  trgElement.style.left = srcElement.offsetLeft + "px";
+  trgElement.style.top = srcElement.offsetTop + "px";
 }
 
 /**
@@ -53,7 +68,7 @@ function setSpinnerAnimationText(newText: string) {
   if (isStringEmptyOrWhitespace(newText))
     throw new Error('The animation spinner text is empty or invalid');
 
-  // update the text that will be shwon in the spinner animation
+  // update the text that will be shown in the spinner animation
   document.querySelector(".spinner-text").textContent = newText;
 }
 
@@ -67,6 +82,17 @@ function showAnimationSpinner(newText: string) {
     setSpinnerAnimationText(newText);
 
   document.querySelector(".spinner-container").style.display = "flex";
+
+  // TODO: Remove this code and put it in the main CSS file once we figure
+  //  out why our style modifications in the fil are not showing up
+  //  during run-time.
+  document.querySelector(".spinner-container").style.position = "absolute";
+  document.querySelector(".spinner-container").style.left = "50%";
+  document.querySelector(".spinner-container").style.top = "50%";
+  document.querySelector(".spinner-container").style.transform = "translate(-50%, -50%)";
+  document.querySelector(".spinner-container").style.color  = "white";
+  document.querySelector(".spinner-container").style.background = "blue";
+
 }
 
 /**
@@ -99,7 +125,9 @@ async function doAsyncWithBusyAnimation(funcAsync: Promise<any>, spinnerText: st
 
     // Make the async call.
     const retVal = await funcAsync;
-    return retval;
+
+    hideAnimationSpinner();
+    return retVal;
   } catch (err) {
     // Make sure the spinner animation is hidden.
     hideAnimationSpinner();
@@ -108,6 +136,25 @@ async function doAsyncWithBusyAnimation(funcAsync: Promise<any>, spinnerText: st
     throw err;
   }
 }
+
+/*
+ This sets the selected Cardano network.  Valid values are:
+
+  preprod    - The preview production network
+  preview    - The preview test network
+  mainnet    - The main network
+
+  WARNING: If this value doesn't match what network the user currently
+    has selected in their wallet, you end up with a contextually corrupt
+    processing environment.
+ */
+export var selectedNetwork = 'preview';
+export var SUPPORTED_WALLETS = [
+  "nami",
+  "flint",
+  "eternl",
+  "Fake - Does not exist",
+];
 
 export type SUPPORTED_WALLETS_TYPE = typeof SUPPORTED_WALLETS[number];
 
@@ -141,7 +188,7 @@ const Home: NextPage = () => {
   useEffect(() => {
     const updateWalletInfo = async () => {
         if (walletIsEnabled) {
-        const _balance = (await getBalance()) as string;
+        const _balance = (await doAsyncWithBusyAnimation(getBalance())) as string;
             setWalletInfo({
               ...walletInfo,
           balance: _balance,
@@ -331,11 +378,11 @@ const Home: NextPage = () => {
         <link rel='icon' href='/favicon.ico' />
       </Head>
 
-      <!-- container for the spinner animation -->
+      {/* container for the spinner animation */}
       <div className="spinner-container">
-        <!-- the spinner itself -->
+        {/* the spinner itself */}
         <div className="spinner"></div>
-        <!-- the text next to the spinner -->
+        {/* the text next to the spinner */}
         <div className="spinner-text"></div>
       </div>
 

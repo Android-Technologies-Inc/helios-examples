@@ -153,36 +153,3 @@
     filter: invert(1);
   }
 }
-
-/* BEGIN: Style for the busy animation spinner */
-
-/* container for the spinner and text */
-.spinner-container {
-  display: flex;
-  align-items: center;
-}
-
-/* style for the spinner */
-.spinner {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  animation: spin 1s linear infinite;
-  display: none; /* Change this to flex to show the spinner. */
-}
-
-/* animation for the spinner */
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* style for the text next to the spinner */
-.spinner-text {
-  margin-left: 10px;
-  font-size: 20px;
-}
-
-/* END  : Style for the busy animation spinner */
