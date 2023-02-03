@@ -25,6 +25,15 @@ declare global {
       cardano:any;
   }
 }
+
+// The enableWallet() function will put the wallet's Cip30Handle here
+//  once it has validated the user's wallet existence.
+let g_Cip30Handle: Cip30Handle;
+
+// The ID of the Cardano network currently selected in the user's
+//  wallet will be placed here.
+let g_NetworkId = null;
+
 /**
  * Check if a string is empty or whitespace
  *
@@ -103,7 +112,7 @@ function hideAnimationSpinner() {
 }
 
 /**
- * This funtion wraps an async call (promise) so that the busy
+ * This function wraps an async call (promise) so that the busy
  *  animation is shown before the call is made, and hidden
  *  when the call is done (or errors our).
  *
@@ -135,6 +144,38 @@ async function doAsyncWithBusyAnimation(funcAsync: Promise<any>, spinnerText: st
     // Let the caller deal with the error.
     throw err;
   }
+}
+
+/**
+ * Get the ID of the Cardano network currently selected in the
+ *  user's wallet.
+ *
+ * NOTE: This function should not be called before the wallet
+ *  has been enabled!
+ *
+ * @return {number|null} - If successful this function returns
+ *  the numeric ID of the wallet currently selected by the user.
+ *  If an error occurred, then NULL is returned.
+ */
+async function updateNetworkId() {
+  // Make sure the CIP30Handle variable has been assigned.
+  if (g_Cip30Handle === null)
+    throw new Error(`The CIP30Handle variable is unassigned.  Cannot get current network ID.`);
+
+  let bErrorOccurred = false;
+
+  const networkId = await g_Cip30Handle.getNetworkId()
+      .catch(err => {
+        bErrorOccurred = true;
+
+        console.error(`The following error occurred while trying to get the current network ID:`);
+        console.error(err);
+      });
+
+  if (bErrorOccurred)
+    return null;
+  else
+    return networkId;
 }
 
 /*
@@ -180,6 +221,10 @@ const Home: NextPage = () => {
       if (walletIsEnabled) {
         const api = await enableWallet();
         setWalletAPI(api);
+
+        // Get the active network ID.
+        const networkId = (await doAsyncWithBusyAnimation(updateNetworkId())) as string;
+        console.warn(`The ID of the Cardano network currently selected by the user is: ${networkId}`);
       }
     };
     enableSelectedWallet();
@@ -216,15 +261,21 @@ const Home: NextPage = () => {
       try {
         const walletChoice = whichWalletSelected;
 
-      if (!walletChoice) return;
+        if (!walletChoice) return;
 
-      const handle: Cip30Handle = await window.cardano[walletChoice].enable();
-            const walletAPI = new Cip30Wallet(handle);
-            return walletAPI;
-    } catch (err) {
-      console.log("enableWallet error", err);
-      setWhichWalletSelected(undefined);
-  }
+        const handle: Cip30Handle = await window.cardano[walletChoice].enable();
+
+        // Hoist the CIP30Handle up to a page level variable. We
+        //  will need it later to get the network ID.
+        g_Cip30Handle = handle;
+
+        const walletAPI = new Cip30Wallet(handle);
+
+        return walletAPI;
+      } catch (err) {
+        console.log("enableWallet error", err);
+        setWhichWalletSelected(undefined);
+      }
   };
 
   const getBalance = async () => {

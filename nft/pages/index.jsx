@@ -51,6 +51,12 @@ import styles from '../styles/Home.module.css';
 import { useState, useEffect } from "react";
 import WalletInfo from '../components/WalletInfo';
 import { Assets, Address, ByteArrayData, Cip30Wallet, ConstrData, hexToBytes, NetworkParams, Program, Value, TxOutput, Tx, WalletHelper } from "@hyperionbt/helios";
+// The enableWallet() function will put the wallet's Cip30Handle here
+//  once it has validated the user's wallet existence.
+var g_Cip30Handle;
+// The ID of the Cardano network currently selected in the user's
+//  wallet will be placed here.
+var g_NetworkId = null;
 /**
  * Check if a string is empty or whitespace
  *
@@ -118,7 +124,7 @@ function hideAnimationSpinner() {
     document.querySelector(".spinner-container").style.display = "none";
 }
 /**
- * This funtion wraps an async call (promise) so that the busy
+ * This function wraps an async call (promise) so that the busy
  *  animation is shown before the call is made, and hidden
  *  when the call is done (or errors our).
  *
@@ -156,6 +162,44 @@ function doAsyncWithBusyAnimation(funcAsync, spinnerText) {
                     // Let the caller deal with the error.
                     throw err_1;
                 case 4: return [2 /*return*/];
+            }
+        });
+    });
+}
+/**
+ * Get the ID of the Cardano network currently selected in the
+ *  user's wallet.
+ *
+ * NOTE: This function should not be called before the wallet
+ *  has been enabled!
+ *
+ * @return {number|null} - If successful this function returns
+ *  the numeric ID of the wallet currently selected by the user.
+ *  If an error occurred, then NULL is returned.
+ */
+function updateNetworkId() {
+    return __awaiter(this, void 0, void 0, function () {
+        var bErrorOccurred, networkId;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    // Make sure the CIP30Handle variable has been assigned.
+                    if (g_Cip30Handle === null)
+                        throw new Error("The CIP30Handle variable is unassigned.  Cannot get current network ID.");
+                    bErrorOccurred = false;
+                    return [4 /*yield*/, g_Cip30Handle.getNetworkId()
+                            .catch(function (err) {
+                            bErrorOccurred = true;
+                            console.error("The following error occurred while trying to get the current network ID:");
+                            console.error(err);
+                        })];
+                case 1:
+                    networkId = _a.sent();
+                    if (bErrorOccurred)
+                        return [2 /*return*/, null];
+                    else
+                        return [2 /*return*/, networkId];
+                    return [2 /*return*/];
             }
         });
     });
@@ -204,17 +248,21 @@ var Home = function () {
     }, [whichWalletSelected]);
     useEffect(function () {
         var enableSelectedWallet = function () { return __awaiter(void 0, void 0, void 0, function () {
-            var api;
+            var api, networkId;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!walletIsEnabled) return [3 /*break*/, 2];
+                        if (!walletIsEnabled) return [3 /*break*/, 3];
                         return [4 /*yield*/, enableWallet()];
                     case 1:
                         api = _a.sent();
                         setWalletAPI(api);
-                        _a.label = 2;
-                    case 2: return [2 /*return*/];
+                        return [4 /*yield*/, doAsyncWithBusyAnimation(updateNetworkId())];
+                    case 2:
+                        networkId = (_a.sent());
+                        console.warn("The ID of the Cardano network currently selected by the user is: ".concat(networkId));
+                        _a.label = 3;
+                    case 3: return [2 /*return*/];
                 }
             });
         }); };
@@ -264,6 +312,9 @@ var Home = function () {
                     return [4 /*yield*/, window.cardano[walletChoice].enable()];
                 case 1:
                     handle = _a.sent();
+                    // Hoist the CIP30Handle up to a page level variable. We
+                    //  will need it later to get the network ID.
+                    g_Cip30Handle = handle;
                     walletAPI_1 = new Cip30Wallet(handle);
                     return [2 /*return*/, walletAPI_1];
                 case 2:
