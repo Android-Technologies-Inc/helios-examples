@@ -117,7 +117,7 @@ function hideAnimationSpinner() {
  *  when the call is done (or errors our).
  *
  * @param {Promise} funcAsync - The async function to call.
- * @param {string} spinnerText - The busy animaton message
+ * @param {string} spinnerText - The busy animation message
  *  that will be displayed next to the spinner animation.
  *
  * @returns {Promise<*>}
@@ -250,8 +250,13 @@ const Home: NextPage = () => {
   };
 
   const checkIfWalletFound = async () => {
+    // This merely checks to see if the user has
+    //  made a wallet selection yet using the web
+    //  page interface.
     if (!whichWalletSelected) return false;
-      
+
+    // This checks to see if a valid Cardano
+    //  wallet is installed in the user's browser.
     if (!window.cardano) return false;
 
     return !!window.cardano[whichWalletSelected];
